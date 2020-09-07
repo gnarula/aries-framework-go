@@ -26,6 +26,9 @@ import (
 
 // CreateKID creates a KID value based on the marshalled keyBytes of type kt. This function should be called for
 // asymmetric public keys only (ECDSA DER or IEEE1363, ED25519).
+// returns:
+//  - base64 raw (no padding) URL encoded KID
+//  - error in case of error
 func CreateKID(keyBytes []byte, kt kms.KeyType) (string, error) {
 	jwk, err := buildJWK(keyBytes, kt)
 	if err != nil {
