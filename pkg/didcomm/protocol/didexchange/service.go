@@ -681,15 +681,18 @@ func (s *Service) requestMsgRecord(msg service.DIDCommMsg) (*connection.Record, 
 	}
 
 	connRecord := &connection.Record{
-		TheirLabel:    request.Label,
-		ConnectionID:  generateRandomID(),
-		ThreadID:      request.ID,
-		State:         stateNameNull,
-		TheirDID:      request.Connection.DID,
-		InvitationID:  invitationID,
-		RoutingKeys:   request.Connection.DIDDoc.Service[0].RoutingKeys,
-		RecipientKeys: request.Connection.DIDDoc.Service[0].RecipientKeys,
-		Namespace:     theirNSPrefix,
+		TheirLabel:   request.Label,
+		ConnectionID: generateRandomID(),
+		ThreadID:     request.ID,
+		State:        stateNameNull,
+		TheirDID:     request.Connection.DID,
+		InvitationID: invitationID,
+		Namespace:    theirNSPrefix,
+	}
+
+	if request.Connection.DIDDoc != nil && len(request.Connection.DIDDoc.Service) > 0 {
+		connRecord.RecipientKeys = request.Connection.DIDDoc.Service[0].RecipientKeys
+		connRecord.RoutingKeys = request.Connection.DIDDoc.Service[0].RoutingKeys
 	}
 
 	if err := s.connectionStore.SaveConnectionRecord(connRecord); err != nil {
