@@ -390,6 +390,9 @@ func (l *LocalKMS) PubKeyBytesToHandle(pubKey []byte, kt kms.KeyType) (interface
 //  - error if import failure (key empty, invalid, doesn't match keyType, unsupported keyType or storing key failed)
 func (l *LocalKMS) ImportPrivateKey(privKey interface{}, kt kms.KeyType,
 	opts ...kms.PrivateKeyOpts) (string, interface{}, error) {
+	if kt == kms.AES128GCMType {
+		return l.importAES128GCM(privKey, kt, opts...)
+	}
 	switch pk := privKey.(type) {
 	case *ecdsa.PrivateKey:
 		return l.importECDSAKey(pk, kt, opts...)

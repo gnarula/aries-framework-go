@@ -14,6 +14,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/google/tink/go/keyset"
+	aesgcmpb "github.com/google/tink/go/proto/aes_gcm_go_proto"
 	commonpb "github.com/google/tink/go/proto/common_go_proto"
 	ecdsapb "github.com/google/tink/go/proto/ecdsa_go_proto"
 	ed25519pb "github.com/google/tink/go/proto/ed25519_go_proto"
@@ -25,6 +26,7 @@ import (
 const (
 	ecdsaSignerTypeURL   = "type.googleapis.com/google.crypto.tink.EcdsaPrivateKey"
 	ed25519SignerTypeURL = "type.googleapis.com/google.crypto.tink.Ed25519PrivateKey"
+	aesGCMTypeURL        = "type.googleapis.com/google.crypto.tink.AesGcmKey"
 )
 
 func (l *LocalKMS) importECDSAKey(privKey *ecdsa.PrivateKey, kt kms.KeyType,
@@ -106,6 +108,19 @@ func getMarshalledECDSAPrivateKey(privKey *ecdsa.PrivateKey, params *ecdsapb.Ecd
 	return proto.Marshal(newProtoECDSAPrivateKey(pubKeyProto, privKey.D.Bytes()))
 }
 
+func (l *LocalKMS) importAES128GCM(key []byte, kt kms.KeyType, opts ...kms.PrivateKeyOpts) (string, *keyset.Handle, error) {
+	keyProto := newProtoAES128GCMKey(key)
+
+	mKeyValue, err := proto.Marshal(keyProto)
+	if err != nil {
+		return "", nil, fmt.Errorf("import AES128GCM key failed: %s", err)
+	}
+
+	ks := newKeySet(aesGCMTypeURL, mKeyValue, tinkpb.KeyData_SYMMETRIC)
+
+	return l.importKeySet(ks, opts...)
+}
+
 func (l *LocalKMS) importEd25519Key(privKey ed25519.PrivateKey, kt kms.KeyType,
 	opts ...kms.PrivateKeyOpts) (string, *keyset.Handle, error) {
 	if privKey == nil {
@@ -149,6 +164,13 @@ func validECPrivateKey(privateKey *ecdsa.PrivateKey) error {
 	}
 
 	return nil
+}
+
+func newProtoAES128GCMKey(key []byte) *aesgcmpb.AesGcmKey {
+	return &aesgcmpb.AesGcmKey{
+		Version:  0,
+		KeyValue: key,
+	}
 }
 
 // newProtoECDSAPrivateKey creates a ECDSAPrivateKey with the specified parameters.
