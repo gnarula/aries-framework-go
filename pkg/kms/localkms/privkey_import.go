@@ -109,6 +109,10 @@ func getMarshalledECDSAPrivateKey(privKey *ecdsa.PrivateKey, params *ecdsapb.Ecd
 }
 
 func (l *LocalKMS) importAES128GCM(key []byte, kt kms.KeyType, opts ...kms.PrivateKeyOpts) (string, *keyset.Handle, error) {
+	if kt != kms.AES128GCMType {
+		return "", nil, fmt.Errorf("invalid key type")
+	}
+
 	keyProto := newProtoAES128GCMKey(key)
 
 	mKeyValue, err := proto.Marshal(keyProto)
